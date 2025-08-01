@@ -3,18 +3,28 @@ import streamlit as st
 st.title("Oil & Water Production Calculator")
 
 # Define a function that converts gauge input into total inches
-def gauge_to_inches(label):
-    user_input = st.text_input(label, value="0' 0\"")
-    cleaned_input = user_input.replace('"', '').replace(' ', '')
-    try:
-        feet, inches = cleaned_input.split("'")
-        return int(feet) * 12 + int(inches)
-    except:
-        st.error("Invalid gauge format. Please use format like 5' 8\"")
-        return 0
-
-def inches_to_bbl(inches):
-    return round(inches * 1.66666667, 1)
+def gauge_to_inches():
+    user_input = input("Enter gauge: ")
+    
+    # Normalize curly quotes and remove spaces
+    cleaned_input = (
+        user_input
+        .replace('’', "'")  # curly apostrophe to normal
+        .replace('“', '"')  # curly double quote to normal
+        .replace('”', '"')  # curly double quote to normal
+        .replace('"', '')   # remove straight quotes
+        .replace(' ', '')   # remove spaces
+    )
+    
+    parsed_input = cleaned_input.split("'")
+    if len(parsed_input) != 2:
+        print("Invalid gauge format. Please use format like 10'6\".")
+        return gauge_to_inches()
+    
+    feet = int(parsed_input[0])
+    inches = int(parsed_input[1])
+    total_inches = feet * 12 + inches
+    return total_inches
 
 # Ask for tank count
 tank_count = st.number_input("How many tanks are actively being produced into?", min_value=1, step=1)
