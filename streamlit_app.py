@@ -25,7 +25,7 @@ def gauge_to_inches(prompt):
         st.error("Invalid gauge format. Use format like 10'6\" or 8'0\".")
         st.stop()
 
-# --- Convert inches to barrels (assumes 1 inch = 1.66666667 bbls) ---
+# --- Convert inches to barrels ---
 def inches_to_bbl(total_inches):
     return total_inches * 1.66666667
 
@@ -52,4 +52,14 @@ for i in range(1, num_tanks + 1):
     st.success(f"Tank {i} production: {round(production, 2)} bbls")
     total_bbls += production
 
-st.subheader(f"Total production across all tanks: {round(total_bbls, 2)} bbls")
+# --- Water and Oil Hauled ---
+st.subheader("Hauling Information (last 24 hrs)")
+
+water_haul = st.number_input("Barrels of water hauled:", min_value=0.0, step=1.0)
+oil_haul = st.number_input("Barrels of oil hauled:", min_value=0.0, step=1.0)
+
+net_bbls = total_bbls - (water_haul + oil_haul)
+
+# --- Results ---
+st.subheader(f"Total gauge-based production: {round(total_bbls, 2)} bbls")
+st.subheader(f"Net production after hauling: {round(net_bbls, 2)} bbls")
