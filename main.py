@@ -1,6 +1,6 @@
 
 import streamlit as st
-
+# updated input handling
 def gauge_to_inches():
     user_input = input("Enter gauge: ")
     
