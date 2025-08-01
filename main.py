@@ -1,26 +1,29 @@
 
 import streamlit as st
 
-def gauge_to_inches(gauge_str):
-    if not gauge_str or gauge_str.strip() == '':
-        return 0
+def gauge_to_inches():
+    user_input = input("Enter gauge: ")
     
-    cleaned_input = gauge_str.replace('"', '').replace(' ', '')
-    
-    if "'" not in cleaned_input:
-        return 0
+    # Normalize curly quotes and remove spaces
+    cleaned_input = (
+        user_input
+        .replace('’', "'")  # curly apostrophe to normal
+        .replace('“', '"')  # curly double quote to normal
+        .replace('”', '"')  # curly double quote to normal
+        .replace('"', '')   # remove straight quotes
+        .replace(' ', '')   # remove spaces
+    )
     
     parsed_input = cleaned_input.split("'")
+    if len(parsed_input) != 2:
+        print("Invalid gauge format. Please use format like 10'6\".")
+        return gauge_to_inches()
     
-    if len(parsed_input) < 2 or not parsed_input[0] or not parsed_input[1]:
-        return 0
-    
-    try:
-        feet = int(parsed_input[0])
-        inches = int(parsed_input[1])
-        return feet * 12 + inches
-    except ValueError:
-        return 0
+    feet = int(parsed_input[0])
+    inches = int(parsed_input[1])
+    total_inches = feet * 12 + inches
+    return total_inches
+
 
 def inches_to_bbl(inches):
     return inches * 1.66666667
