@@ -1,19 +1,22 @@
 import streamlit as st
 
-st.title("Oil & Water Production Calculator")
-
-# Define a function that converts gauge input into total inches
+# --- Convert gauge format (e.g. 10'6" or 10’6”) to inches ---
 def gauge_to_inches(prompt):
     user_input = st.text_input(prompt, key=prompt)
     if not user_input:
-        st.stop()  # pause Streamlit until input is given
+        st.stop()
+
+    # Normalize various quote formats
     cleaned_input = (
-        user_input.replace('’', "'")
+        user_input
+        .replace('’', "'")
+        .replace('‘', "'")
         .replace('“', '"')
         .replace('”', '"')
-        .replace('"', '')
-        .replace(' ', '')
+        .replace('"', '')  # remove inches marker
+        .replace(' ', '')  # remove spaces
     )
+
     try:
         feet, inches = cleaned_input.split("'")
         total_inches = int(feet) * 12 + int(inches)
@@ -22,40 +25,31 @@ def gauge_to_inches(prompt):
         st.error("Invalid gauge format. Use format like 10'6\" or 8'0\".")
         st.stop()
 
-# Ask for tank count
-tank_count = st.number_input("How many tanks are actively being produced into?", min_value=1, step=1)
+# --- Convert inches to barrels (assumes 1 inch = 1.66666667 bbls) ---
+def inches_to_bbl(total_inches):
+    return total_inches * 1.66666667
 
-if tank_count:
-    total_yest_water = 0
-    total_yest_oil = 0
-    total_today_water = 0
-    total_today_oil = 0
+# --- Streamlit App Starts Here ---
+st.title("Fluid Production Calculator")
 
-    for i in range(1, tank_count + 1):
-        st.subheader(f"Tank {i}")
+num_tanks = st.number_input("How many tanks are active?", min_value=1, step=1)
 
-        yest_top = inches_to_bbl(gauge_to_inches(f"Yesterday's top gauge for Tank {i}:"))
-        yest_bot = inches_to_bbl(gauge_to_inches(f"Yesterday's bottom gauge for Tank {i}:"))
-        today_top = inches_to_bbl(gauge_to_inches(f"Today's top gauge for Tank {i}:"))
-        today_bot = inches_to_bbl(gauge_to_inches(f"Today's bottom gauge for Tank {i}:"))
+total_bbls = 0
 
-        yest_oil = yest_top - yest_bot
-        today_oil = today_top - today_bot
+for i in range(1, num_tanks + 1):
+    st.header(f"Tank {i}")
 
-        total_yest_water += yest_bot
-        total_today_water += today_bot
-        total_yest_oil += yest_oil
-        total_today_oil += today_oil
+    yest_top = inches_to_bbl(gauge_to_inches(f"Yesterday's top gauge for Tank {i}:"))
+    yest_bottom = inches_to_bbl(gauge_to_inches(f"Yesterday's bottom gauge for Tank {i}:"))
 
-    water_hauled = st.number_input("How many barrels of water were hauled in the past 24 hours?", step=0.1)
-    oil_hauled = st.number_input("How many barrels of oil were hauled in the past 24 hours?", step=0.1)
+    today_top = inches_to_bbl(gauge_to_inches(f"Today's top gauge for Tank {i}:"))
+    today_bottom = inches_to_bbl(gauge_to_inches(f"Today's bottom gauge for Tank {i}:"))
 
-    if st.button("Calculate Production"):
-        adjusted_water = total_today_water + water_hauled
-        adjusted_oil = total_today_oil + oil_hauled
+    yest_total = yest_top - yest_bottom
+    today_total = today_top - today_bottom
+    production = today_total - yest_total
 
-        final_water = round(adjusted_water - total_yest_water, 1)
-        final_oil = round(adjusted_oil - total_yest_oil, 1)
+    st.success(f"Tank {i} production: {round(production, 2)} bbls")
+    total_bbls += production
 
-        st.success(f"💧 Water Production: {final_water} bbls")
-        st.success(f"🛢️ Oil Production: {final_oil} bbls")
+st.subheader(f"Total production across all tanks: {round(total_bbls, 2)} bbls")
